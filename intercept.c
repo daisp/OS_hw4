@@ -13,12 +13,12 @@ void **sys_call_table = NULL;
 
 asmlinkage long (*original_sys_kill)(void);
 
-char* program_name = NULL;
+char *program_name = NULL;
 MODULE_PARM(program_name, "s");
 
-bool compare_name(char* str1, char* str2) {
-    for(int i = 0 ; i < MAX_NAME_SIZE ; i++) {
-        if(str1[i] != str2[i])
+bool compare_name(char *str1, char *str2) {
+    for (int i = 0; i < MAX_NAME_SIZE; i++) {
+        if (str1[i] != str2[i])
             return false;
     }
     return true;
@@ -26,9 +26,11 @@ bool compare_name(char* str1, char* str2) {
 
 /* New fake syscall: */
 asmlinkage long our_sys_kill(int pid, int sig) {
-    if (compare_names(current->comm, "Bill")) {
-
+    if (compare_names(find_task_by_pid(pid)->comm, program_name) &&
+        sig == SIGKILL) {
+        return -EPERM;
     }
+    return sys_kill();
 }
 
 // TODO: import original syscall and write new syscall
