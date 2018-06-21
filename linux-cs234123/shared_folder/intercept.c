@@ -20,25 +20,17 @@ int scan_range = 0;
 MODULE_PARM(program_name, "s");
 MODULE_PARM(scan_range, "i");
 
-bool compare_names(char *str1, char *str2) {
-    if (!str1 || !str2) return false;
-    int i;
-    for (i = 0; (i < MAX_NAME_SIZE) && str1 && str2; i++) {
-        if (str1[i] != str2[i])
-            return false;
-    }
-    if(str1[i] != '\0' || str2[i] != '\0') return false;
-    return true;
-}
-
 /* New fake syscall: */
 asmlinkage long our_sys_kill(int pid, int sig) {
-    task_t* p = find_task_by_pid(pid);
+    printk("******   ENTERING THE FAKE SYS_KILL!   ******\npid=%ld, sig=%d\n", (long)pid, sig);
     if(!pid) {
+        printk("calling original sys_kill because !pid is true\n");
         return sys_kill(pid, sig);
     }
-    if (compare_names(p->comm, program_name) &&
+    task_t* p = find_task_by_pid(pid);
+    if (strcmp(p->comm, program_name)==0 &&
         sig == SIGKILL) {
+        printk("Ignoring SIGKILL\n");
         return -EPERM;
     }
     return sys_kill(pid, sig);
@@ -46,17 +38,29 @@ asmlinkage long our_sys_kill(int pid, int sig) {
 
 void find_sys_call_table(int scan_range) {
     void *p = &system_utsname;
-    int i = 0;
-    for (; i < scan_range; p += sizeof(void*), i++) {
-        if (p == &sys_read)
+    printk("system_utsname is at %p\nsys_read is at %p\n", &system_utsname, &sys_read);
+    int i;
+    bool found_flag = false;
+    for (i=0; i < scan_range; p += sizeof(void*), i++) {
+        if (*(unsigned int*)p == sys_read){
+            found_flag = true;
             break;
+        }
     }
-    p = p - 3; //sys_read syscall num is 3, so reduce the offset to get to syscall table
+    if (found_flag) printk("Found sys_read at %p\n",p);
+    else printk("Did not find sys_read\n");
+    p = p - 3*sizeof(void *); //sys_read syscall num is 3, so reduce the offset to get to syscall table
     sys_call_table = p;
+    printk("sys_call_table variable is now %p\n", sys_call_table);
 }
 
 int init_module(void) {
     /* set sys_kill syscall to our fake syscall: */
+    if (program_name == NULL){
+        printk("program_name is NULL, doing nothing");
+        return 0;
+    }
+    printk("=====================================\nscan_range is %d, program_name is %s\n", scan_range,program_name);
     find_sys_call_table(scan_range);
     original_sys_kill = sys_call_table[37]; //sys_kill num is 37
     sys_call_table[37] = our_sys_kill;

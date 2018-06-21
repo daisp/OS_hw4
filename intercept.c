@@ -21,6 +21,7 @@ MODULE_PARM(program_name, "s");
 MODULE_PARM(scan_range, "i");
 
 bool compare_names(char *str1, char *str2) {
+    if (!str1 || !str2) return false;
     int i;
     for (i = 0; (i < MAX_NAME_SIZE) && str1 && str2; i++) {
         if (str1[i] != str2[i])

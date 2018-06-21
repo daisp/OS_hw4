@@ -1,0 +1,9 @@
+#!/bin/bash
+
+shared
+if make; then
+    rmmod intercept
+    insmod intercept.o program_name=Bill scan_range=600
+    lsmod
+    ./Bill&
+fi
