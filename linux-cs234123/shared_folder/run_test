@@ -9,6 +9,7 @@ gcc killedG.c -o killed2G.out
 
 
 #test #1 - always success
+
 res=`./killerG.out`
 echo -n "TEST#1:"
 if [[ $res == "99" ]]; then
@@ -18,6 +19,7 @@ else
 fi
 
 #test #2 - always success
+
 res=`./killerG.out 1 1`
 echo -n "TEST#2:"
 if [[ $res == "1515" ]]; then
@@ -27,6 +29,7 @@ else
 fi
 
 #test #3 - always success
+
 res=`./killerG.out 0 1`
 echo -n "TEST#3:"
 if [[ $res == "915" ]]; then
@@ -36,6 +39,7 @@ else
 fi
 
 #test #4
+
 insmod intercept.o
 res=`./killerG.out`
 echo -n "TEST#4:"

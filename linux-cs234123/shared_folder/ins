@@ -1,9 +1,9 @@
 #!/bin/bash
 
-shared
+cd /mnt/hgfs/shared_folder
 if make; then
     rmmod intercept
-    insmod intercept.o program_name=Bill scan_range=600
+    insmod intercept.o program_name=Bill
     lsmod
     ./Bill&
 fi
